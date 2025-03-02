@@ -2,10 +2,11 @@ const express = require("express");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 const User = require("../models/UserModel");
+const authMiddleware = require("../middleware/authMiddleware");
 
 const router = express.Router();
 
-// Secret key for JWT
+// Secret key for JWT (use environment variable in production)
 const JWT_SECRET = "your_secret_key";
 
 // Register user
@@ -51,20 +52,8 @@ router.post("/login", async (req, res) => {
 });
 
 // Verify token (protected route example)
-router.get("/protected", authenticateToken, (req, res) => {
+router.get("/protected", authMiddleware(), (req, res) => {
     res.json({ message: "This is a protected route", user: req.user });
 });
-
-// Middleware to verify JWT
-function authenticateToken(req, res, next) {
-    const token = req.header("Authorization")?.split(" ")[1];
-    if (!token) return res.status(403).json({ message: "Access denied" });
-
-    jwt.verify(token, JWT_SECRET, (err, user) => {
-        if (err) return res.status(403).json({ message: "Invalid token" });
-        req.user = user;
-        next();
-    });
-}
 
 module.exports = router;

@@ -1,62 +1,72 @@
 const express = require("express");
-const router = express.Router();
 const RecurringTransaction = require("../models/RecurringTransactionModel");
 
-// ✅ Create a recurring transaction
+const router = express.Router();
+
+// Add a new recurring transaction
 router.post("/", async (req, res) => {
-  try {
-    const { userId, category, transactionType, amount, recurringTime, nextOccurrence } = req.body;
-    
-    const transaction = new RecurringTransaction({
-      userId,
-      category,
-      transactionType,
-      amount,
-      recurringTime,
-      nextOccurrence,
-    });
-
-    await transaction.save();
-    res.status(201).json(transaction);
-  } catch (error) {
-    res.status(500).json({ message: "Error creating transaction", error });
-  }
+    try {
+        const { type, category, amount, recurringTime, nextDate } = req.body;
+        const recurringTransaction = new RecurringTransaction({
+            type,
+            category,
+            amount,
+            recurringTime,
+            nextDate,
+        });
+        await recurringTransaction.save();
+        res.status(201).send(recurringTransaction);
+    } catch (error) {
+        res.status(500).send({ error: "Error adding recurring transaction" });
+    }
 });
 
-// ✅ Get all transactions for a user
-router.get("/:userId", async (req, res) => {
-  try {
-    const transactions = await RecurringTransaction.find({ userId: req.params.userId });
-    res.json(transactions);
-  } catch (error) {
-    res.status(500).json({ message: "Error fetching transactions", error });
-  }
+// Get all recurring transactions
+router.get("/", async (req, res) => {
+    try {
+        const recurringTransactions = await RecurringTransaction.find({});
+        res.send(recurringTransactions);
+    } catch (error) {
+        res.status(500).send({ error: "Error fetching recurring transactions" });
+    }
 });
 
-// ✅ Update a transaction (only if it belongs to the user)
+// Update a recurring transaction
 router.put("/:id", async (req, res) => {
-  try {
-    const transaction = await RecurringTransaction.findById(req.params.id);
-    if (!transaction) return res.status(404).json({ message: "Transaction not found" });
+    try {
+        const { id } = req.params;
+        const { type, category, amount, recurringTime, nextDate } = req.body;
 
-    Object.assign(transaction, req.body); // Update fields dynamically
-    await transaction.save();
-    res.json(transaction);
-  } catch (error) {
-    res.status(500).json({ message: "Error updating transaction", error });
-  }
+        const recurringTransaction = await RecurringTransaction.findByIdAndUpdate(
+            id,
+            { type, category, amount, recurringTime, nextDate },
+            { new: true }
+        );
+
+        if (!recurringTransaction) {
+            return res.status(404).send({ error: "Recurring transaction not found" });
+        }
+
+        res.send(recurringTransaction);
+    } catch (error) {
+        res.status(500).send({ error: "Error updating recurring transaction" });
+    }
 });
 
-// ✅ Delete a transaction (only if it belongs to the user)
+// Delete a recurring transaction
 router.delete("/:id", async (req, res) => {
-  try {
-    const transaction = await RecurringTransaction.findByIdAndDelete(req.params.id);
-    if (!transaction) return res.status(404).json({ message: "Transaction not found" });
+    try {
+        const { id } = req.params;
+        const recurringTransaction = await RecurringTransaction.findByIdAndDelete(id);
 
-    res.json({ message: "Transaction deleted" });
-  } catch (error) {
-    res.status(500).json({ message: "Error deleting transaction", error });
-  }
+        if (!recurringTransaction) {
+            return res.status(404).send({ error: "Recurring transaction not found" });
+        }
+
+        res.send({ message: "Recurring transaction deleted successfully" });
+    } catch (error) {
+        res.status(500).send({ error: "Error deleting recurring transaction" });
+    }
 });
 
 module.exports = router;

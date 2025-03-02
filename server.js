@@ -6,6 +6,8 @@ const authRoutes = require('./routes/authRoutes.js');
 const userRoutes = require('./routes/userRoutes.js');
 const transactionRoutes = require('./routes/transactionRoutes.js');
 const recurringTransactionsRoute = require('./routes/recurringTransactionsRoute.js');
+const budgetRoute = require('./routes/budgetRoute.js');
+const reportRoutes = require('./routes/reportRoutes.js');
 
 const app = express();
 
@@ -21,8 +23,10 @@ app.get('/', (req, res) => {
 app.use('/goals', goalRoute);
 app.use('/api/transactions', transactionRoutes);
 app.use('/api/recurring', recurringTransactionsRoute);
+app.use('/api/budgets', budgetRoute);
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
+app.use("/api/reports", reportRoutes);
 
 // Connect to MongoDB using mongoose
 mongoose
